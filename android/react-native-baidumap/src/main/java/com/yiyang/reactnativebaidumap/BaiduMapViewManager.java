@@ -4,27 +4,28 @@ import android.content.Context;
 import android.os.StrictMode;
 import android.support.annotation.Nullable;
 import android.util.Log;
-import android.view.View;
+import android.widget.Button;
 
 import com.baidu.mapapi.SDKInitializer;
 import com.baidu.mapapi.map.BaiduMap;
+import com.baidu.mapapi.map.BitmapDescriptorFactory;
+import com.baidu.mapapi.map.InfoWindow;
 import com.baidu.mapapi.map.MapStatus;
 import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.Marker;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.model.LatLngBounds;
-import com.facebook.react.uimanager.events.RCTEventEmitter;
+import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.bridge.WritableNativeMap;
-import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.common.MapBuilder;
 import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.annotations.ReactProp;
+import com.facebook.react.uimanager.events.RCTEventEmitter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,8 +41,10 @@ public class BaiduMapViewManager extends SimpleViewManager<MapView> {
 
     private ReactMapView mMapView;
 
-    private ReactContext mContext;
-
+    private Context mContext;
+    //firegnu
+    private ThemedReactContext mReactContext;
+    //
     private boolean isMapLoaded;
 
 
@@ -53,9 +56,8 @@ public class BaiduMapViewManager extends SimpleViewManager<MapView> {
     @Override
     protected MapView createViewInstance(ThemedReactContext themedReactContext) {
         SDKInitializer.initialize(themedReactContext.getApplicationContext());
-        final MapView view = new MapView(themedReactContext);
+        MapView view = new MapView(themedReactContext);
         mMapView = new ReactMapView(view);
-
         view.getMap().setOnMapLoadedCallback(new BaiduMap.OnMapLoadedCallback() {
             @Override
             public void onMapLoaded() {
@@ -63,43 +65,34 @@ public class BaiduMapViewManager extends SimpleViewManager<MapView> {
                 mMapView.onMapLoaded();
             }
         });
-
-        view.getMap().setOnMarkerClickListener(new BaiduMap.OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(Marker marker) {
-                WritableMap event;
-
-                event = makeClickEventData(marker);
-                event.putString("annotationId", marker.getTitle());
-                BaiduMapViewManager.this.pushEvent(view, "onAnnotationFocus", event);
-
-                return false;
-            }
-        });
         this.mContext = themedReactContext;
+        //firegnu
+        this.mReactContext = themedReactContext;
+        //
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
         return view;
     }
 
-    void pushEvent(View view, String name, WritableMap data) {
-        mContext.getJSModule(RCTEventEmitter.class)
-                .receiveEvent(view.getId(), name, data);
-    }
-
-    public WritableMap makeClickEventData(Marker marker) {
-        WritableMap event = new WritableNativeMap();
-
-        WritableMap coordinate = new WritableNativeMap();
-        coordinate.putDouble("latitude", marker.getPosition().latitude);
-        coordinate.putDouble("longitude", marker.getPosition().longitude);
-        event.putMap("coordinate", coordinate);
-
-        return event;
-    }
-
     public ReactMapView getMapView() {
         return mMapView;
+    }
+
+    @Override
+    @Nullable
+    public Map getExportedCustomDirectEventTypeConstants() {
+        Map<String, Map<String, String>> map = MapBuilder.of(
+                "onAnnotationFocus", MapBuilder.of("registrationName", "onAnnotationFocus")
+        );
+
+        /*map.putAll(MapBuilder.of(
+                "onMarkerDragStart", MapBuilder.of("registrationName", "onMarkerDragStart"),
+                "onMarkerDrag", MapBuilder.of("registrationName", "onMarkerDrag"),
+                "onMarkerDragEnd", MapBuilder.of("registrationName", "onMarkerDragEnd"),
+                "onPanDrag", MapBuilder.of("registrationName", "onPanDrag")
+        ));*/
+
+        return map;
     }
 
     @ReactProp(name="showsUserLocation", defaultBoolean = false)
@@ -156,14 +149,40 @@ public class BaiduMapViewManager extends SimpleViewManager<MapView> {
             ReactMapMarker marker = new ReactMapMarker(this.mContext);
             marker.buildMarker(annotation);
             markers.add(marker);
+
         }
 
         getMapView().setMarker(markers);
-
+        /*for(int i = 0; i < markers.size(); i++) {
+            ReactMapMarker marker = markers.get(i);
+            /////firegnu infowindow
+            Button button = new Button(mContext);
+            button.setBackgroundResource(R.drawable.popup);
+            LatLng ll = marker.getMarker().getPosition();
+            button.setText("我的小毛驴");
+            InfoWindow mInfoWindow = new InfoWindow(BitmapDescriptorFactory.fromView(button), ll, -47, null);
+            getMapView().getMap().showInfoWindow(mInfoWindow);
+            /////
+        }*/
+        /////firegnu
+        mapView.getMap().setOnMarkerClickListener(new BaiduMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                WritableMap writableMap = Arguments.createMap();
+                WritableMap position = Arguments.createMap();
+                position.putDouble("latitude", marker.getPosition().latitude);
+                position.putDouble("longitude", marker.getPosition().longitude);
+                writableMap.putMap("position", position);
+                writableMap.putString("title", marker.getTitle());
+                sendAnnotationEvent("onAnnotationFocus", marker.getTitle(), writableMap);
+                return true;
+            }
+        });
+        /////
+        /////
         if (this.isMapLoaded && this.mMapView.isAutoZoomToSpan()) {
             this.mMapView.zoomToSpan();
         }
-
     }
 
     @ReactProp(name = "overlays")
@@ -183,7 +202,6 @@ public class BaiduMapViewManager extends SimpleViewManager<MapView> {
         }
 
         getMapView().setOverlays(overlays);
-
 
         if (this.isMapLoaded && this.mMapView.isAutoZoomToSpan()) {
             this.mMapView.zoomToSpan();
@@ -225,16 +243,6 @@ public class BaiduMapViewManager extends SimpleViewManager<MapView> {
             default:
                 break;
         }
-    }
-
-    @Override
-    @Nullable
-    public Map getExportedCustomDirectEventTypeConstants() {
-        Map<String, Map<String, String>> map = MapBuilder.of(
-                "onAnnotationFocus", MapBuilder.of("registrationName", "onAnnotationFocus")
-        );
-
-        return map;
     }
 
     @javax.annotation.Nullable
@@ -321,5 +329,16 @@ public class BaiduMapViewManager extends SimpleViewManager<MapView> {
         }
 
         return result;
+    }
+
+    private void sendAnnotationEvent(String eventName, String annotationId, @Nullable WritableMap params) {
+        WritableMap event = Arguments.createMap();
+        event.putMap("params", params);
+        event.putString("annotationId", annotationId);
+        mReactContext
+                .getJSModule(RCTEventEmitter.class)
+                .receiveEvent(mMapView.getId(),
+                        eventName,
+                        event);
     }
 }

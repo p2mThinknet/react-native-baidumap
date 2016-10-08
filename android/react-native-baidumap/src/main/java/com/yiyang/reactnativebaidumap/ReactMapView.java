@@ -50,6 +50,12 @@ public class ReactMapView {
         return this.mMapView.getMap();
     }
 
+    //firegnu
+    public int getId() {
+        return this.mMapView.getId();
+    }
+    //
+
     public void setOverlays(List<ReactMapOverlay> overlays) {
         List<String> newOverlayIds = new ArrayList<String>();
         List<ReactMapOverlay> overlaysToDelete = new ArrayList<ReactMapOverlay>();

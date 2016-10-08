@@ -339,7 +339,6 @@ const BaiduMapView= React.createClass({
     active: React.PropTypes.bool,
   },
 
-
   render: function() {
     let children = [], {annotations, overlays, followUserLocation, userLocationViewParams, showsZoomControl} = this.props;
     annotations = annotations && annotations.map((annotation: Object) => {

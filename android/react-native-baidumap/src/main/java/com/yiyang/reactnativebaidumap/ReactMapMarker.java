@@ -2,8 +2,16 @@ package com.yiyang.reactnativebaidumap;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.graphics.drawable.Animatable;
 import android.net.Uri;
+import android.util.Log;
 
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.BitmapDescriptor;
@@ -122,11 +130,73 @@ public class ReactMapMarker {
                 }
             }
         } else {
-            options.icon(defaultIcon);
+            Bitmap bitmap3 = null;
+            Bitmap bitmap4 = null;
+            try {
+                bitmap3 =drawbitmap();
+                bitmap4 =drawtext(bitmap3,annotation.getString("subtile"));
+                iconBitmapDescriptor = BitmapDescriptorFactory.fromBitmap(bitmap4);
+                options.icon(iconBitmapDescriptor);
+            }
+            catch (Exception e) {
+                Log.e("RCTBaiduMap", e.toString());
+            }
+            finally{
+                bitmap3.recycle();
+                bitmap4.recycle();
+                bitmap3=null;
+                bitmap4=null;
+                //options.icon(defaultIcon);
+            }
+            ////////options.icon(defaultIcon);
         }
 
-
+        this.mOptions = options;
     }
+    //firegnu
+    private static Bitmap small(Bitmap bitmap) {
+        Matrix matrix = new Matrix();
+        matrix.postScale(0.4f,0.4f);
+        Bitmap resizeBmp = Bitmap.createBitmap(bitmap,0,0,bitmap.getWidth(),bitmap.getHeight(),matrix,true);
+        return resizeBmp;
+    }
+
+
+    private Bitmap drawtext(Bitmap bitmap3,String info) {
+        int width = bitmap3.getWidth(), hight = bitmap3.getHeight();
+        Bitmap icon = Bitmap.createBitmap(width, hight, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(icon);
+        Paint photoPaint = new Paint();
+        photoPaint.setDither(true);
+        photoPaint.setFilterBitmap(true);
+        Rect src = new Rect(0, 0, bitmap3.getWidth(), bitmap3.getHeight());
+        Rect dst = new Rect(0, 0, width, hight);
+        canvas.drawBitmap(bitmap3, src, dst, photoPaint);
+        Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
+        textPaint.setTextSize(60.0f);
+        textPaint.setTypeface(Typeface.MONOSPACE);
+        textPaint.setColor(Color.rgb(26, 179, 0));
+        //textPaint.setShadowLayer(3f, 1, 1,this.getResources().getColor(android.R.color.background_dark));//影音的设置
+        canvas.drawText(info, 20, 100, textPaint);
+        canvas.save(Canvas.ALL_SAVE_FLAG);
+        canvas.restore();
+
+        Bitmap newIcon = small(icon);
+        return newIcon;
+    }
+    private Bitmap drawbitmap() {
+        Bitmap photo = BitmapFactory.decodeResource(mContext.getResources(),R.drawable.pop);
+        int width = photo.getWidth();
+        int hight = photo.getHeight();
+        Bitmap newb = Bitmap.createBitmap(width, hight, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(newb);
+        Paint photoPaint = new Paint();
+        canvas.drawBitmap(photo, 0, 0, photoPaint);
+        canvas.save(Canvas.ALL_SAVE_FLAG);
+        canvas.restore();
+        return newb;
+    }
+    //
 
     private GenericDraweeHierarchy createDraweeHierarchy() {
         return new GenericDraweeHierarchyBuilder(this.mContext.getResources())
