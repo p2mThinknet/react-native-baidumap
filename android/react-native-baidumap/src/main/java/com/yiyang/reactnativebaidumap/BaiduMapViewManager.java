@@ -38,12 +38,14 @@ public class BaiduMapViewManager extends SimpleViewManager<MapView> {
     public static final String RCT_CLASS = "RCTBaiduMap";
 
     public static final int COMMAND_ZOOM_TO_LOCS = 1;
+    public static final int COMMAND_SET_MARKER_POSITION = 2;
 
     private ReactMapView mMapView;
 
     private Context mContext;
     //firegnu
     private ThemedReactContext mReactContext;
+    List<ReactMapMarker> markers;
     //
     private boolean isMapLoaded;
 
@@ -142,14 +144,13 @@ public class BaiduMapViewManager extends SimpleViewManager<MapView> {
             return;
         }
 
-        List<ReactMapMarker> markers = new ArrayList<ReactMapMarker>();
+        markers = new ArrayList<ReactMapMarker>();
         int size = value.size();
         for (int i = 0; i < size; i++) {
             ReadableMap annotation = value.getMap(i);
             ReactMapMarker marker = new ReactMapMarker(this.mContext);
             marker.buildMarker(annotation);
             markers.add(marker);
-
         }
 
         getMapView().setMarker(markers);
@@ -240,6 +241,22 @@ public class BaiduMapViewManager extends SimpleViewManager<MapView> {
                 }
                 this.zoomToLatLngs(root, positions);
                 break;
+            case COMMAND_SET_MARKER_POSITION:
+                ReadableMap annotation = args.getMap(0);
+                String markerTitle = annotation.getString("title");
+                Log.e(RCT_CLASS, markerTitle);
+                Log.e(RCT_CLASS, Integer.toString(markers.size()));
+                for(int i = 0; i < markers.size(); i++) {
+                    if(markers.get(i) != null) {
+                        Log.e(RCT_CLASS, markers.get(i).getMarker().getTitle());
+                        if(markers.get(i).getMarker().getTitle().equals(markerTitle)) {
+                            markers.get(i).getMarker().setPosition(new LatLng(annotation.getDouble("latitude"), annotation.getDouble("longitude")));
+                            break;
+                        }
+
+                    }
+                }
+                //markers.get(0).getMarker().setPosition(new LatLng(annotation.getDouble("latitude"), annotation.getDouble("longitude")));
             default:
                 break;
         }
@@ -248,7 +265,7 @@ public class BaiduMapViewManager extends SimpleViewManager<MapView> {
     @javax.annotation.Nullable
     @Override
     public Map<String, Integer> getCommandsMap() {
-        return MapBuilder.of("zoomToLocs", COMMAND_ZOOM_TO_LOCS);
+        return MapBuilder.of("zoomToLocs", COMMAND_ZOOM_TO_LOCS, "setMarkerPosition", COMMAND_SET_MARKER_POSITION);
     }
 
     private void zoomToCenter(MapView mapView, LatLng center) {

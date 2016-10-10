@@ -530,6 +530,20 @@ const BaiduMapView= React.createClass({
           [locs]
       );
   },
+
+  setMarkerPosition(locs) {
+    /*if (!Array.isArray(locs) && Object.prototype.toString.call(locs) === '[object Object]') {
+          locs = [locs];
+      }
+      if (!Array.isArray(locs)) {
+          return;
+      }*/
+      UIManager.dispatchViewManagerCommand(
+          ReactNative.findNodeHandle(this.refs["baiduMap"]),
+          UIManager.RCTBaiduMap.Commands.setMarkerPosition,
+          locs
+      );
+  }
 });
 
 const styles = StyleSheet.create({
