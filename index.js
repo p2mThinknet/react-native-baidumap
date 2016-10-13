@@ -14,6 +14,7 @@ import ReactNative, {
     UIManager,
     processColor,
     ColorPropType,
+    DeviceEventEmitter
 } from 'react-native';
 
 import deprecatedPropType from 'react-native/Libraries/Utilities/deprecatedPropType';
@@ -31,6 +32,7 @@ export type MAAnnotationDragState = $Enum<{
   canceling: string;
   ending: string;
 }>;
+
 // class Fuck extends React.Component {
 //     render() {
 //         return <View></View>;
@@ -541,6 +543,14 @@ const BaiduMapView= React.createClass({
       UIManager.dispatchViewManagerCommand(
           ReactNative.findNodeHandle(this.refs["baiduMap"]),
           UIManager.RCTBaiduMap.Commands.setMarkerPosition,
+          locs
+      );
+  },
+
+  getMarkersCount(locs) {
+    UIManager.dispatchViewManagerCommand(
+          ReactNative.findNodeHandle(this.refs["baiduMap"]),
+          UIManager.RCTBaiduMap.Commands.getMarkersCount,
           locs
       );
   }

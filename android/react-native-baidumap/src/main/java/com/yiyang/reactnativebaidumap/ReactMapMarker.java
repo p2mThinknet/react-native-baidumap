@@ -177,10 +177,9 @@ public class ReactMapMarker {
         textPaint.setTypeface(Typeface.MONOSPACE);
         textPaint.setColor(Color.rgb(26, 179, 0));
         //textPaint.setShadowLayer(3f, 1, 1,this.getResources().getColor(android.R.color.background_dark));//影音的设置
-        canvas.drawText(info, 20, 100, textPaint);
+        canvas.drawText(info, 40, 100, textPaint);
         canvas.save(Canvas.ALL_SAVE_FLAG);
         canvas.restore();
-
         Bitmap newIcon = small(icon);
         return newIcon;
     }

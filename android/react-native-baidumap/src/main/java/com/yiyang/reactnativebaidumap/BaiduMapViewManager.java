@@ -39,13 +39,14 @@ public class BaiduMapViewManager extends SimpleViewManager<MapView> {
 
     public static final int COMMAND_ZOOM_TO_LOCS = 1;
     public static final int COMMAND_SET_MARKER_POSITION = 2;
+    public static final int COMMAND_GET_MARKERS_COUNT = 3;
 
     private ReactMapView mMapView;
 
     private Context mContext;
     //firegnu
     private ThemedReactContext mReactContext;
-    List<ReactMapMarker> markers;
+    List<ReactMapMarker> markers = new ArrayList<ReactMapMarker>();
     //
     private boolean isMapLoaded;
 
@@ -144,7 +145,7 @@ public class BaiduMapViewManager extends SimpleViewManager<MapView> {
             return;
         }
 
-        markers = new ArrayList<ReactMapMarker>();
+        //markers = new ArrayList<ReactMapMarker>();
         int size = value.size();
         for (int i = 0; i < size; i++) {
             ReadableMap annotation = value.getMap(i);
@@ -154,17 +155,6 @@ public class BaiduMapViewManager extends SimpleViewManager<MapView> {
         }
 
         getMapView().setMarker(markers);
-        /*for(int i = 0; i < markers.size(); i++) {
-            ReactMapMarker marker = markers.get(i);
-            /////firegnu infowindow
-            Button button = new Button(mContext);
-            button.setBackgroundResource(R.drawable.popup);
-            LatLng ll = marker.getMarker().getPosition();
-            button.setText("我的小毛驴");
-            InfoWindow mInfoWindow = new InfoWindow(BitmapDescriptorFactory.fromView(button), ll, -47, null);
-            getMapView().getMap().showInfoWindow(mInfoWindow);
-            /////
-        }*/
         /////firegnu
         mapView.getMap().setOnMarkerClickListener(new BaiduMap.OnMarkerClickListener() {
             @Override
@@ -242,6 +232,11 @@ public class BaiduMapViewManager extends SimpleViewManager<MapView> {
                 this.zoomToLatLngs(root, positions);
                 break;
             case COMMAND_SET_MARKER_POSITION:
+                //first send all markers's info to js
+                //WritableMap writableMap = Arguments.createMap();
+                //writableMap.putString("markerCount", Integer.toString(markers.size()));
+                //sendAnnotationEvent("onMapViewGetMarkers", "", writableMap);
+                //then
                 ReadableMap annotation = args.getMap(0);
                 String markerTitle = annotation.getString("title");
                 Log.e(RCT_CLASS, markerTitle);
@@ -256,7 +251,10 @@ public class BaiduMapViewManager extends SimpleViewManager<MapView> {
 
                     }
                 }
-                //markers.get(0).getMarker().setPosition(new LatLng(annotation.getDouble("latitude"), annotation.getDouble("longitude")));
+                break;
+             case COMMAND_GET_MARKERS_COUNT:
+                Log.e(RCT_CLASS, Integer.toString(markers.size()));
+                break;
             default:
                 break;
         }
@@ -265,7 +263,7 @@ public class BaiduMapViewManager extends SimpleViewManager<MapView> {
     @javax.annotation.Nullable
     @Override
     public Map<String, Integer> getCommandsMap() {
-        return MapBuilder.of("zoomToLocs", COMMAND_ZOOM_TO_LOCS, "setMarkerPosition", COMMAND_SET_MARKER_POSITION);
+        return MapBuilder.of("zoomToLocs", COMMAND_ZOOM_TO_LOCS, "setMarkerPosition", COMMAND_SET_MARKER_POSITION, "getMarkersCount", COMMAND_GET_MARKERS_COUNT);
     }
 
     private void zoomToCenter(MapView mapView, LatLng center) {
