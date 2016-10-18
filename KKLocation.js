@@ -13,8 +13,10 @@
 
 import React from 'react';
 
-var RCTDeviceEventEmitter = React.DeviceEventEmitter;
-var KKLocationObserver = React.NativeModules.KKLocationObserver;
+import {NativeModules, DeviceEventEmitter} from 'react-native'
+
+var RCTDeviceEventEmitter = DeviceEventEmitter;
+var KKLocationObserver = NativeModules.KKLocationObserver;
 
 
 var subscriptions = [];
