@@ -1,6 +1,7 @@
 package com.yiyang.reactnativebaidumap;
 
 import android.content.Context;
+import android.graphics.Point;
 import android.os.StrictMode;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -16,6 +17,7 @@ import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.Marker;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.model.LatLngBounds;
+
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
@@ -40,6 +42,7 @@ public class BaiduMapViewManager extends SimpleViewManager<MapView> {
     public static final int COMMAND_ZOOM_TO_LOCS = 1;
     public static final int COMMAND_SET_MARKER_POSITION = 2;
     public static final int COMMAND_GET_MARKERS_COUNT = 3;
+    public static final int COMMAND_MOVEMAP_WHENMARKER_OUTOFSCREEN = 4;
 
     private ReactMapView mMapView;
 
@@ -255,6 +258,15 @@ public class BaiduMapViewManager extends SimpleViewManager<MapView> {
              case COMMAND_GET_MARKERS_COUNT:
                 Log.e(RCT_CLASS, Integer.toString(markers.size()));
                 break;
+             case COMMAND_MOVEMAP_WHENMARKER_OUTOFSCREEN:
+                ReadableMap markerAnnonation = args.getMap(0);
+                Point pt = this.mMapView.getMap().getMapStatus().targetScreen;
+                Point point = this.mMapView.getMap().getProjection().toScreenLocation(new LatLng(markerAnnonation.getDouble("latitude"), markerAnnonation.getDouble("longitude")));
+                if(point.x < 0 || point.x > pt.x*2 || point.y < 0 || point.y > pt.y*2)
+                {
+                    this.mMapView.getMap().animateMapStatus(MapStatusUpdateFactory.newLatLng(new LatLng(markerAnnonation.getDouble("latitude"), markerAnnonation.getDouble("longitude"))));
+                }
+                break;
             default:
                 break;
         }
@@ -263,7 +275,7 @@ public class BaiduMapViewManager extends SimpleViewManager<MapView> {
     @javax.annotation.Nullable
     @Override
     public Map<String, Integer> getCommandsMap() {
-        return MapBuilder.of("zoomToLocs", COMMAND_ZOOM_TO_LOCS, "setMarkerPosition", COMMAND_SET_MARKER_POSITION, "getMarkersCount", COMMAND_GET_MARKERS_COUNT);
+        return MapBuilder.of("zoomToLocs", COMMAND_ZOOM_TO_LOCS, "setMarkerPosition", COMMAND_SET_MARKER_POSITION, "getMarkersCount", COMMAND_GET_MARKERS_COUNT, "moveMapWhenMarkerOutofScreen", COMMAND_MOVEMAP_WHENMARKER_OUTOFSCREEN);
     }
 
     private void zoomToCenter(MapView mapView, LatLng center) {

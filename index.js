@@ -547,6 +547,14 @@ const BaiduMapView= React.createClass({
       );
   },
 
+  moveMapWhenMarkerOutofScreen(locs) {
+      UIManager.dispatchViewManagerCommand(
+          ReactNative.findNodeHandle(this.refs["baiduMap"]),
+          UIManager.RCTBaiduMap.Commands.moveMapWhenMarkerOutofScreen,
+          locs
+      );
+  },
+
   getMarkersCount(locs) {
     UIManager.dispatchViewManagerCommand(
           ReactNative.findNodeHandle(this.refs["baiduMap"]),
