@@ -43,6 +43,7 @@ public class BaiduMapViewManager extends SimpleViewManager<MapView> {
     public static final int COMMAND_SET_MARKER_POSITION = 2;
     public static final int COMMAND_GET_MARKERS_COUNT = 3;
     public static final int COMMAND_MOVEMAP_WHENMARKER_OUTOFSCREEN = 4;
+    public static final int COMMAND_CLEAR_ALLOVERLAY = 5;
 
     private ReactMapView mMapView;
 
@@ -267,6 +268,15 @@ public class BaiduMapViewManager extends SimpleViewManager<MapView> {
                     this.mMapView.getMap().animateMapStatus(MapStatusUpdateFactory.newLatLng(new LatLng(markerAnnonation.getDouble("latitude"), markerAnnonation.getDouble("longitude"))));
                 }
                 break;
+            case COMMAND_CLEAR_ALLOVERLAY:
+                this.mMapView.getMap().clear();
+                for(int i = 0; i < markers.size(); i++) {
+                    if(markers.get(i) != null) {
+                        markers.get(i).getMarker().remove();
+                    }
+                }
+                markers.clear();
+                break;
             default:
                 break;
         }
@@ -275,7 +285,8 @@ public class BaiduMapViewManager extends SimpleViewManager<MapView> {
     @javax.annotation.Nullable
     @Override
     public Map<String, Integer> getCommandsMap() {
-        return MapBuilder.of("zoomToLocs", COMMAND_ZOOM_TO_LOCS, "setMarkerPosition", COMMAND_SET_MARKER_POSITION, "getMarkersCount", COMMAND_GET_MARKERS_COUNT, "moveMapWhenMarkerOutofScreen", COMMAND_MOVEMAP_WHENMARKER_OUTOFSCREEN);
+        return MapBuilder.of("zoomToLocs", COMMAND_ZOOM_TO_LOCS, "setMarkerPosition", COMMAND_SET_MARKER_POSITION, "getMarkersCount", COMMAND_GET_MARKERS_COUNT,
+                "moveMapWhenMarkerOutofScreen", COMMAND_MOVEMAP_WHENMARKER_OUTOFSCREEN, "clearAllOverlay", COMMAND_CLEAR_ALLOVERLAY);
     }
 
     private void zoomToCenter(MapView mapView, LatLng center) {

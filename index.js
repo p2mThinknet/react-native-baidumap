@@ -555,6 +555,14 @@ const BaiduMapView= React.createClass({
       );
   },
 
+  clearAllOverlay(locs) {
+      UIManager.dispatchViewManagerCommand(
+          ReactNative.findNodeHandle(this.refs["baiduMap"]),
+          UIManager.RCTBaiduMap.Commands.clearAllOverlay,
+          locs
+      );
+  },
+
   getMarkersCount(locs) {
     UIManager.dispatchViewManagerCommand(
           ReactNative.findNodeHandle(this.refs["baiduMap"]),
